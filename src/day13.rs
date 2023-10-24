@@ -91,7 +91,6 @@ fn solve_part1(input: &[[Packet; 2]]) -> usize {
         .enumerate()
         .filter_map(|(index, [left, right])| {
             let correct = correct(left, right).unwrap();
-            dbg!(left, right, correct);
             if correct {
                 Some(index + 1)
             } else {

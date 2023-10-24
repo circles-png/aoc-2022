@@ -1,4 +1,4 @@
-use std::{fmt::Write, thread::sleep, time::Duration};
+use std::fmt::Write;
 
 use aoc_runner_derive::{aoc, aoc_generator};
 
@@ -25,13 +25,14 @@ impl Line {
 #[derive(Debug, Clone, Copy)]
 struct Sand(Point);
 
-fn blocked(point: Point, environment: (&[Line], &[Sand])) -> bool {
+fn blocked(point: Point, environment: (&[Line], &[Sand], Option<i32>)) -> bool {
     environment.0.iter().any(|line| line.contains(point))
         || environment.1.iter().any(|sand| sand.0 == point)
+        || environment.2.map_or(false, |floor_y| point.1 >= floor_y)
 }
 
 impl Sand {
-    fn fall(&mut self, environment: (&[Line], &[Self])) -> bool {
+    fn fall(&mut self, environment: (&[Line], &[Self], Option<i32>)) -> bool {
         let three_below = [
             (self.0 .0, self.0 .1 + 1),
             (self.0 .0 - 1, self.0 .1 + 1),
@@ -76,6 +77,7 @@ fn input_generator(input: &str) -> Vec<Line> {
 
 const SOURCE: Point = (500, 0);
 
+#[allow(dead_code)]
 fn display(environment: (&[Line], &[Sand])) {
     let (min_x, max_x, min_y, max_y) = (
         environment
@@ -151,7 +153,8 @@ fn display(environment: (&[Line], &[Sand])) {
                 } else {
                     "."
                 }
-            ).unwrap();
+            )
+            .unwrap();
         }
         writeln!(buffer).unwrap();
     }
@@ -165,9 +168,7 @@ fn solve_part1(rocks: &[Line]) -> usize {
         let existing_sand = sand.clone();
         sand.push(Sand(SOURCE));
         let last_sand = sand.last_mut().unwrap();
-
-        display((rocks, &existing_sand));
-        while last_sand.fall((rocks, &existing_sand)) {
+        while last_sand.fall((rocks, &existing_sand, None)) {
             if (last_sand.0 .1
                 ..=rocks
                     .iter()
@@ -185,6 +186,25 @@ fn solve_part1(rocks: &[Line]) -> usize {
             }
         }
     }
-    display((rocks, &sand));
     sand.len() - 1
+}
+
+#[aoc(day14, part2)]
+fn solve_part2(rocks: &[Line]) -> usize {
+    let mut sand: Vec<Sand> = Vec::new();
+    let floor_y = rocks
+        .iter()
+        .map(|line| line.start.1.max(line.end.1))
+        .max()
+        .unwrap() + 2;
+    loop {
+        let existing_sand = sand.clone();
+        if sand.iter().any(|sand| sand.0 == SOURCE) {
+            break;
+        }
+        sand.push(Sand(SOURCE));
+        let last_sand = sand.last_mut().unwrap();
+        while last_sand.fall((rocks, &existing_sand, Some(floor_y))) {}
+    }
+    sand.len()
 }
