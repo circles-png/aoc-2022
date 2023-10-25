@@ -95,7 +95,6 @@ fn solve_part1(input: &[Sensor]) -> usize {
 
 #[aoc(day15, part2)]
 fn solve_part2(input: &[Sensor]) -> i64 {
-    println!("a");
     let circles_two_bigger = input.iter().map(|sensor| {
         let distance = distance(sensor.position, sensor.closest_beacon) + 1;
         let range_x = sensor.position.0 - distance..=sensor.position.0 + distance;
@@ -108,9 +107,7 @@ fn solve_part2(input: &[Sensor]) -> i64 {
         }
         points
     });
-    println!("a");
     let pairs = input.iter().map(|sensor| (distance(sensor.position, sensor.closest_beacon), sensor));
-    println!("a");
     let point = circles_two_bigger
         .map(|circle| {
             circle
@@ -121,6 +118,5 @@ fn solve_part2(input: &[Sensor]) -> i64 {
         .find(|point| point.is_some_and(|point| (0..=4_000_000).contains(&point.0) && (0..=4_000_000).contains(&point.1)))
         .unwrap()
         .unwrap();
-    dbg!(point);
     i64::from(point.0) * 4_000_000 + i64::from(point.1)
 }
