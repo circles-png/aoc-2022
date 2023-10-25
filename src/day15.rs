@@ -1,4 +1,4 @@
-use std::{collections::HashSet, ops::Range};
+use std::{collections::HashSet, iter::repeat, ops::Range};
 
 use aoc_runner_derive::{aoc, aoc_generator};
 
@@ -66,21 +66,6 @@ fn display(sensors: &[Sensor], range: (Range<i32>, Range<i32>), highlight: &[Poi
 
 const ROW: i32 = 2_000_000;
 
-fn points(sensor: &Sensor) -> Vec<Point> {
-    let distance = distance(sensor.position, sensor.closest_beacon);
-    let range_x = sensor.position.0 - distance..=sensor.position.0 + distance;
-    let mut points = HashSet::new();
-    for x in range_x {
-        if ROW < sensor.position.1 - distance + (x - sensor.position.0).abs()
-            || ROW > sensor.position.1 + distance - (x - sensor.position.0).abs()
-        {
-            continue;
-        }
-        points.insert((x, ROW));
-    }
-    points.iter().copied().collect::<Vec<_>>()
-}
-
 #[aoc(day15, part1)]
 fn solve_part1(input: &[Sensor]) -> usize {
     let existing = input
@@ -89,8 +74,53 @@ fn solve_part1(input: &[Sensor]) -> usize {
         .collect::<Vec<_>>();
     input
         .iter()
-        .flat_map(points)
+        .flat_map(|sensor| {
+            let distance = distance(sensor.position, sensor.closest_beacon);
+            let range_x = sensor.position.0 - distance..=sensor.position.0 + distance;
+            let mut points = HashSet::new();
+            for x in range_x {
+                if ROW < sensor.position.1 - distance + (x - sensor.position.0).abs()
+                    || ROW > sensor.position.1 + distance - (x - sensor.position.0).abs()
+                {
+                    continue;
+                }
+                points.insert((x, ROW));
+            }
+            points.iter().copied().collect::<Vec<_>>()
+        })
         .filter(|point| point.1 == ROW && !existing.contains(point))
         .collect::<HashSet<_>>()
         .len()
+}
+
+#[aoc(day15, part2)]
+fn solve_part2(input: &[Sensor]) -> i64 {
+    println!("a");
+    let circles_two_bigger = input.iter().map(|sensor| {
+        let distance = distance(sensor.position, sensor.closest_beacon) + 1;
+        let range_x = sensor.position.0 - distance..=sensor.position.0 + distance;
+        let mut points = HashSet::new();
+        for x in range_x {
+            points.extend(repeat(x).zip([
+                sensor.position.1 - distance + (x - sensor.position.0).abs(),
+                sensor.position.1 + distance - (x - sensor.position.0).abs(),
+            ]));
+        }
+        points
+    });
+    println!("a");
+    let pairs = input.iter().map(|sensor| (distance(sensor.position, sensor.closest_beacon), sensor));
+    println!("a");
+    let point = circles_two_bigger
+        .map(|circle| {
+            circle
+                .iter()
+                .find(|&&point| !pairs.clone().any(|pair| pair.0 >= distance(pair.1.position, point)))
+                .copied()
+        })
+        .find(|point| point.is_some_and(|point| (0..=4_000_000).contains(&point.0) && (0..=4_000_000).contains(&point.1)))
+        .unwrap()
+        .unwrap();
+    dbg!(point);
+    i64::from(point.0) * 4_000_000 + i64::from(point.1)
 }
