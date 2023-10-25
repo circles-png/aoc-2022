@@ -1,8 +1,4 @@
-use std::{
-    collections::{HashMap, HashSet},
-    iter::repeat,
-    ops::Range,
-};
+use std::{collections::HashSet, ops::Range};
 
 use aoc_runner_derive::{aoc, aoc_generator};
 
@@ -50,6 +46,7 @@ fn input_generator(input: &str) -> Vec<Sensor> {
         .collect()
 }
 
+#[allow(dead_code)]
 fn display(sensors: &[Sensor], range: (Range<i32>, Range<i32>), highlight: &[Point]) {
     for y in range.1 {
         for x in range.0.clone() {
